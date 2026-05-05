@@ -1,159 +1,21 @@
-import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import {
-  FlatList,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
 
-import { CustomerCard, formatBirr } from '@/components/CustomerCard';
-import { EmptyState } from '@/components/EmptyState';
-import { useCreditBook } from '@/context/CreditBookContext';
-import { useColors } from '@/hooks/useColors';
-
-export default function CustomersScreen() {
-  const colors = useColors();
-  const { customers, totalOutstanding } = useCreditBook();
-  const [search, setSearch] = useState('');
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return customers;
-    const q = search.toLowerCase();
-    return customers.filter(
-      c =>
-        c.name.toLowerCase().includes(q) ||
-        (c.phone && c.phone.includes(q))
-    );
-  }, [customers, search]);
-
-  const handleAdd = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push('/add-customer');
-  };
-
-  const topPad = Platform.OS === 'web' ? 67 : 0;
-  const bottomPad = Platform.OS === 'web' ? 34 : 0;
-
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: topPad + 16 }]}>
-        <View style={styles.titleBlock}>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>
-            ሳምኬት የብድር መዝገብ
-          </Text>
-          <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>Samket Card</Text>
-        </View>
-        <Pressable
-          style={({ pressed }) => [styles.addButton, { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 }]}
-          onPress={handleAdd}
-        >
-          <Feather name="plus" size={22} color="#fff" />
-        </Pressable>
-      </View>
-
-      {customers.length > 0 && (
-        <View style={[styles.summaryStrip, { backgroundColor: colors.primary }]}>
-          <View>
-            <Text style={styles.summaryLabel}>ጠቅላላ ቀሪ ዕዳ</Text>
-            <Text style={styles.summaryAmount}>{formatBirr(totalOutstanding)}</Text>
-          </View>
-          <View style={styles.summaryRight}>
-            <Feather name="users" size={20} color="rgba(255,255,255,0.7)" />
-            <Text style={styles.summaryCount}>{customers.length} ደንበኛ</Text>
-          </View>
-        </View>
-      )}
-
-      <View style={[styles.searchContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Feather name="search" size={16} color={colors.mutedForeground} />
-        <TextInput
-          style={[styles.searchInput, { color: colors.foreground }]}
-          placeholder="ደንበኞችን ይፈልጉ..."
-          placeholderTextColor={colors.mutedForeground}
-          value={search}
-          onChangeText={setSearch}
-        />
-        {search.length > 0 && (
-          <Pressable onPress={() => setSearch('')} hitSlop={10}>
-            <Feather name="x" size={16} color={colors.mutedForeground} />
-          </Pressable>
-        )}
-      </View>
-
-      <FlatList
-        data={filtered}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => <CustomerCard customer={item} />}
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: 100 + bottomPad },
-          filtered.length === 0 && styles.listEmpty,
-        ]}
-        ListHeaderComponent={
-          filtered.length > 0 ? (
-            <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
-              {search ? `${filtered.length} ውጤት` : 'ሁሉም ደንበኞች'}
-            </Text>
-          ) : null
-        }
-        ListEmptyComponent={
-          <EmptyState
-            icon="book-open"
-            title={search ? 'ምንም ውጤት የለም' : 'እስካሁን ደንበኛ የለም'}
-            message={
-              search
-                ? 'ሌላ ስም ወይም ስልክ ቁጥር ይሞክሩ'
-                : 'የመጀመሪያ ደንበኛ ለመጨመር + ቁልፍ ይጫኑ'
-            }
-          />
-        }
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={!!filtered.length}
-      />
-    </View>
-  );
+{
+  "expo": {
+    "name": "Samket Card - የሳምኬት የዕዳ መዝገብ",
+    "slug": "samket-card",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.samket.card.abay",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "NOTIFICATIONS"
+      ]
+    }
+  }
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-  },
-  titleBlock: { flex: 1 },
-  headerTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
-  headerSub: { fontSize: 11, fontWeight: '500', marginTop: 1 },
-  addButton: {
-    width: 42, height: 42, borderRadius: 21,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  summaryStrip: {
-    marginHorizontal: 20, marginBottom: 14, borderRadius: 14,
-    padding: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-  },
-  summaryLabel: { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginBottom: 4 },
-  summaryAmount: { fontSize: 24, fontWeight: '700', color: '#ffffff' },
-  summaryRight: { alignItems: 'center', gap: 6 },
-  summaryCount: { fontSize: 12, color: 'rgba(255,255,255,0.8)' },
-  searchContainer: {
-    flexDirection: 'row', alignItems: 'center',
-    marginHorizontal: 20, marginBottom: 14,
-    borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, height: 44,
-  },
-  searchInput: { flex: 1, marginLeft: 8, fontSize: 15 },
-  listContent: { paddingHorizontal: 20 },
-  listEmpty: { flexGrow: 1 },
-  sectionLabel: {
-    fontSize: 12, fontWeight: '600', textTransform: 'uppercase',
-    letterSpacing: 0.5, marginBottom: 10,
-  },
-});
